@@ -110,7 +110,7 @@ const server = http.createServer((req, res) => {
       const convBody = JSON.parse(body);
       const cookies = req.headers.cookie;
       // console.log("im the cookie", cookies);
-      // const id = cookies ? cookies.split("; ").find(cookie=> cookie.)
+      // const id = cookies
       const extractCookie = cookies.split("=")[1];
       console.log(extractCookie);
       fs.readFile("data.json", "utf-8", (err, data) => {
