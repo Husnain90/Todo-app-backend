@@ -1,5 +1,6 @@
 const http = require("http");
 const fs = require("fs");
+const path = require("path");
 const server = http.createServer((req, res) => {
   console.log("server hit");
   // sign up end point
@@ -66,7 +67,9 @@ const server = http.createServer((req, res) => {
     );
 
     res.end("Logged out");
-  } else if (req.method === "POST" && req.url === "/api/v1/add-todo") {
+  }
+  // add to do
+  else if (req.method === "POST" && req.url === "/api/v1/add-todo") {
     console.log("yello");
     let body = "";
     req.on("data", (chunk) => {
@@ -100,7 +103,9 @@ const server = http.createServer((req, res) => {
         }
       });
     });
-  } else if (req.method === "POST" && req.url === "/api/v1/update-todo") {
+  }
+  // update to do
+  else if (req.method === "POST" && req.url === "/api/v1/update-todo") {
     console.log("melo");
     let body = "";
     req.on("data", (chunk) => {
@@ -110,7 +115,7 @@ const server = http.createServer((req, res) => {
       const convBody = JSON.parse(body);
       const cookies = req.headers.cookie;
       // console.log("im the cookie", cookies);
-      // const id = cookies ? cookies.split("; ").find(cookie=> cookie.)
+      // const id = cookies
       const extractCookie = cookies.split("=")[1];
       console.log(extractCookie);
       fs.readFile("data.json", "utf-8", (err, data) => {
@@ -123,27 +128,61 @@ const server = http.createServer((req, res) => {
           const filterTodo = convJson.find(
             (todo) => todo.id === parseInt(convBody.id)
           );
-          const existingTasks = Object.keys(filterTodo).filter((key) =>
-            key.startsWith("task")
-          );
-          const taskCounter = existingTasks.length + 1;
-          const taskKey = `task${taskCounter}`;
-
           // Update the todo with the new task
-          filterTodo[taskKey] = convBody.task;
-
+          const task = convBody.task;
           console.log("here is todo", filterTodo);
-          // const task = convBody.task1;
-          // console.log(task);
-          // const updateTodo = { [taskKfilterTodo };
-          // console.log(updateTodo);
-          // res.end("todo created");
-          // appendDataTofile("data.json", filterTodo);
-          // taskCounter++;
-          console.log([taskKey]);
+          console.log({ ...filterTodo, task });
+          const updatedTask = { ...filterTodo, task };
+
+          const allTodos = convJson.filter(
+            (todo) => todo.id !== parseInt(convBody.id)
+          );
+
+          console.log("filterd all todays ", allTodos);
+          resetJsonFile();
+          allTodos.push(updatedTask);
+
+          // console.log("here is the todo", updatedFile);
+          writeToFile("data.json", allTodos);
+          res.end("todo updated");
         } else {
           console.log("you are not authorize");
           // res.end("todo is not created");
+          res.end("You are not authorized");
+        }
+      });
+    });
+  } else if (req.method === "POST" && req.url === "/api/v1/delete-todo") {
+    console.log("delete route");
+    let body = "";
+    req.on("data", (chunk) => {
+      body += chunk;
+    });
+    req.on("end", () => {
+      const convBody = JSON.parse(body);
+      const cookies = req.headers.cookie;
+      const extractCookie = cookies.split("=")[1];
+      console.log(extractCookie);
+      fs.readFile("data.json", "utf-8", (err, data) => {
+        const convJson = JSON.parse(data);
+        const filterPerson = convJson.find(
+          (person) => person.id === parseInt(extractCookie)
+        );
+
+        if (filterPerson) {
+          const allTodos = convJson.filter(
+            (todo) => todo.id !== parseInt(convBody.id)
+          );
+
+          console.log("filterd all todays ", allTodos);
+          resetJsonFile();
+
+          writeToFile("data.json", allTodos);
+          res.end("todo deleted");
+        } else {
+          console.log("you are not authorize");
+          // res.end("todo is not created");
+          res.end("You are not authorized");
         }
       });
     });
@@ -170,6 +209,55 @@ const server = http.createServer((req, res) => {
         console.log("here is the", filterdata);
         res.writeHead(200, { "Content-Type": "application/json" });
         res.end(JSON.stringify(filterdata));
+      });
+    });
+  }
+  // upload-file
+  else if (req.method === "POST" && req.url === "/api/v1/upload-file") {
+    console.log("the upload-file route hit");
+    const contentType = req.headers["content-type"];
+    const boundary = "--" + contentType.split("=")[1];
+    console.log(boundary);
+
+    let rawData = Buffer.alloc(0);
+
+    req.on("data", (chunk) => {
+      rawData = Buffer.concat([rawData, chunk]);
+    });
+    req.on("end", () => {
+      const parts = rawData.toString().split(boundary);
+      console.log("yellow");
+      console.log("this is the ", parts);
+      parts.forEach((part) => {
+        if (part.includes("Content-Disposition")) {
+          const [headers, fileContent] = part.split("\r\n\r\n");
+          console.log("headers", headers.trim());
+          console.log(
+            "File content (binary data):",
+            Buffer.from(fileContent.trim(), "binary")
+          );
+          const fileNameMatch = headers.match(/filename="(.+?)"/);
+          if (fileNameMatch) {
+            const fileName = fileNameMatch[1].trim();
+            const filePath = path.join(__dirname, fileName);
+            const endIndex = fileContent.lastIndexOf("\r\n");
+            const binaryData = Buffer.from(
+              fileContent.slice(0, endIndex).trim(),
+              "binary"
+            );
+            fs.writeFile(filePath, binaryData, "binary", (err) => {
+              if (err) {
+                console.error(`Error saving file: ${err.message}`);
+                res.writeHead(500, { "Content-Type": "text/plain" });
+                res.end("Failed to save file.");
+                return;
+              }
+              console.log(`File saved as ${filePath}`);
+              res.writeHead(200, { "Content-Type": "text/plain" });
+              res.end("File uploaded and saved successfully.");
+            });
+          }
+        }
       });
     });
   } else {
@@ -207,5 +295,24 @@ const appendDataTofile = (filePath, newDaTa) => {
       }
       console.log("Data appeneded succesfully");
     });
+  });
+};
+
+const resetJsonFile = () => {
+  fs.writeFile("data.json", JSON.stringify([]), (err) => {
+    if (err) {
+      console.log("file failed to reset ");
+    } else {
+      console.log("file reset succesfully");
+    }
+  });
+};
+const writeToFile = (filePath, data) => {
+  fs.writeFile(filePath, JSON.stringify(data), (err) => {
+    if (err) {
+      console.log("fail to write data");
+    } else {
+      console.log("data stored successfully ");
+    }
   });
 };
