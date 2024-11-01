@@ -1,32 +1,45 @@
 [
   {
-    "id": 1730359299325,
-    "name": "mirza",
-    "email": "mirza@gmail.com",
-    "password": "123"
-  },
-  { "id": 1730360783647, "user_id": 1730359299325, "task": "i will jog daily" },
-  {
-    "id": 1730360960222,
-    "name": "Muhammad ali",
-    "email": "ali@gmail.com",
-    "password": "123"
-  },
-  { "id": 1730361196588, "user_id": 1730360960222, "task": "i  make coffe " },
-  {
-    "id": 1730360796698,
-    "user_id": 1730359299325,
-    "task": "i go to karachi in 2025 "
+    "id": 1730454464502,
+    "Name": " ali",
+    "Email": "test@gmail.com",
+    "Password": "123"
   },
   {
-    "id": 1730361003153,
-    "user_id": 1730360960222,
-    "task": "i go to karachi in 2025 "
+    "id": 1730454514977,
+    "Name": "malik",
+    "Email": "malik@gmail.com",
+    "Password": "123"
   },
   {
-    "id": 1730361748319,
-    "name": " ali",
-    "email": "test@gmail.com",
-    "password": "123"
+    "id": 1730454538479,
+    "Name": "zain",
+    "Email": "zain@gmail.com",
+    "Password": "123"
+  },
+  {
+    "id": 1730464824139,
+    "User_id": "1730454538479",
+    "Task": "i will make cookies"
+  },
+  {
+    "id": 1730464833753,
+    "User_id": "1730454538479",
+    "Task": "i will make pasta"
+  },
+  {
+    "id": 1730464843634,
+    "User_id": "1730454538479",
+    "Task": "i will make fries"
+  },
+  {
+    "id": 1730464945468,
+    "User_id": "1730454514977",
+    "Task": "i will go to paris"
+  },
+  {
+    "id": 1730464961550,
+    "User_id": "1730454514977",
+    "Task": "i will go to sweden"
   }
 ]
